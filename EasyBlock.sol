@@ -389,8 +389,7 @@ library SafeERC20 {
 
 contract EasyBlock {
     using SafeMath for uint256;
-    // TODO: Should any things be private ?
-    // TODO: Emits
+
     // Shareholder Info
     address[] public holders;
     mapping(address => uint) public shareCount;
@@ -409,15 +408,25 @@ contract EasyBlock {
     // StrongBlock Node Holders
     address[] public nodeHolders;
     // Statistic Variables
-    uint public totalInvestmentsInUSD = 0;
-    uint public totalRewardsDistributedInUSD = 0;
+    uint public totalInvestmentsInUSD;
+    uint public totalRewardsDistributedInUSD;
     mapping(address => uint) public totalUserRewards;
     // Protocol controllers
-    bool public sharePurchaseEnabled = false;
+    bool public sharePurchaseEnabled;
+
+    /* ======== EVENTS ======== */
+    event Investment(uint shareAmount, uint investmentInUSD, address shareHolder);
+    event RewardCollected(uint amount, address shareHolder);
 
 
-    function EasyBlock(){
+    constructor (uint _fee) {
+        manager = msg.sender;
+        fee = _fee;
+        feeCollector = msg.sender;
 
+        totalInvestmentsInUSD = 0;
+        totalRewardsDistributedInUSD = 0;
+        sharePurchaseEnabled = false;
     }
 
     // Controller toggles
@@ -429,7 +438,7 @@ contract EasyBlock {
     // Deposit to Purchase Methods
     function addPurchaseToken(address _tokenAddress, uint _tokenPrice) external {
         require(msg.sender == manager, "Not Authorized!");
-        require(!listContains(purchaseTokens, _tokenAddress), "Token already added.")
+        require(!listContains(purchaseTokens, _tokenAddress), "Token already added.");
 
         purchaseTokens.push(_tokenAddress);
         purchaseTokensPrice[_tokenAddress] = _tokenPrice;
@@ -437,7 +446,7 @@ contract EasyBlock {
 
     function editPurchaseToken(address _tokenAddress, uint _tokenPrice) external {
         require(msg.sender == manager, "Not Authorized!");
-        require(listContains(purchaseTokens, _tokenAddress), "Token is not a purchase asset.")
+        require(listContains(purchaseTokens, _tokenAddress), "Token is not a purchase asset.");
 
         purchaseTokensPrice[_tokenAddress] = _tokenPrice;
     }
@@ -473,21 +482,21 @@ contract EasyBlock {
 
     function withdrawToManager(address _token, uint _amount) external {
         require(msg.sender == manager, "Not Authorized!");
-        require(listContains(purchaseTokens, _token), "Not a Purchase Token.")
+        require(listContains(purchaseTokens, _token), "Not a Purchase Token.");
         IERC20( _token ).safeTransfer( manager, _amount);
     }
 
     function depositRewards(uint _amount) external {
         IERC20(rewardToken ).safeTransferFrom( msg.sender, address(this), _amount );
 
-        totalRewardsDistributedInUSD = totalRewardsDistributedInUSD.add( _amount.div( IERC20(rewardToken ).decimals()))
+        totalRewardsDistributedInUSD = totalRewardsDistributedInUSD.add( _amount.div( IERC20(rewardToken ).decimals()));
 
         uint _feeAmount = fee.mul(_amount).div( 1000);
         IERC20(rewardToken ).safeTransfer(feeCollector, _feeAmount);
         _amount = sub(_amount, _feeAmount);
 
         for(uint _i = 0; i < holders.length; i++) {
-            address _currentHolder = holders[i]
+            address _currentHolder = holders[i];
             uint _userReward = _amount.mul( shareCount[_currentHolder]).div( totalShareCount);
             claimableReward[_currentHolder] = claimableReward[_currentHolder].add( _userReward);
 
@@ -499,18 +508,21 @@ contract EasyBlock {
     function claimRewards() external {
         require(listContains(holders, msg.sender), "msg.sender is not a shareholder.");
         IERC20(rewardToken ).safeTransfer( msg.sender, claimableReward[msg.sender]);
+
+        emit RewardCollected(claimableReward[msg.sender], msg.sender);
+
         claimableReward[msg.sender] = 0;
     }
 
     function buyShares(address _token, uint _shareCount) external {
-        require(listContains(purchaseTokens, _token), "Not a Purchase Token.")
-        require(sharePurchaseEnabled, "Shares are not purchasable at the moment.")
+        require(listContains(purchaseTokens, _token), "Not a Purchase Token.");
+        require(sharePurchaseEnabled, "Shares are not purchasable at the moment.");
 
         uint _tokenDecimals = IERC20(_token ).decimals();
-        uint _price = purchaseTokensPrice[_token]
-        IERC20(_token ).safeTransferFrom( msg.sender, address(this), _price.mul( _tokenDecimals).mul( _shareCount );
+        uint _price = purchaseTokensPrice[_token];
+        IERC20(_token ).safeTransferFrom( msg.sender, address(this), _price.mul( _tokenDecimals).mul( _shareCount ));
 
-        totalInvestmentsInUSD = totalInvestmentsInUSD.add( _shareCount.mul( _price))
+        totalInvestmentsInUSD = totalInvestmentsInUSD.add( _shareCount.mul( _price));
 
         if(!listContains(holders, msg.sender)) {
             holders.push(msg.sender);
@@ -518,6 +530,8 @@ contract EasyBlock {
         }
         shareCount[msg.sender] = shareCount[msg.sender].add( _shareCount);
         totalShareCount = totalShareCount.add( _shareCount);
+
+        emit Investment(_shareCount, _price.mul(_shareCount), msg.sender);
     }
 
     // HELPERS START
