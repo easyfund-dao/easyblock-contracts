@@ -142,22 +142,23 @@ library SafeERC20 {
 contract EasyBlock {
     // TODO: Should any things be private ?
     // TODO: Emits
-    // TODO: using SafeMath for ... stuff
     // Shareholder Info
-    address[] holders;
-    mapping(address => uint) shareCount;
-    mapping(address => uint) claimableReward;
+    address[] public holders;
+    mapping(address => uint) public shareCount;
+    mapping(address => uint) public claimableReward;
 
-    uint totalShareCount = 0;
+    uint public totalShareCount = 0;
     // Manager Info
     address public manager;
     uint public fee = 0; // per 1000
-    uint collectedFee = 0;
-    // Deposit from manager (StrongBlock -> EasyBlock)
+    address public feeCollector;
+    // Deposit Token
     address public rewardToken;
-    // Deposit from shareholders (EasyBlock -> StrongBlock)
+    // Purchase Tokens
     address[] public purchaseTokens;
     mapping(address => uint) public purchaseTokensPrice; // In USD
+    // StrongBlock Node Holders
+    address[] public nodeHolders;
 
 
     function EasyBlock(){
@@ -186,10 +187,22 @@ contract EasyBlock {
         rewardToken = _tokenAddress;
     }
 
+    // NodeHolders
+    function setNodeHolder(address _address) external {
+        require(msg.sender == manager, "Not Authorized!");
+        require(!listContains(nodeHolders, _address), "Address already added.");
+        nodeHolders.push(_address);
+    }
+
     // Manager Related Methods
     function setManager(address _address) external {
         require(msg.sender == manager, "Not Authorized!");
         manager = _address;
+    }
+
+    function setFeeCollector(address _address) external {
+        require(msg.sender == manager, "Not Authorized!");
+        feeCollector = _address;
     }
 
     function setFee(uint _fee) external {
@@ -207,7 +220,7 @@ contract EasyBlock {
         IERC20(rewardToken ).safeTransferFrom( msg.sender, address(this), _amount );
 
         uint _feeAmount = div(mul(fee,_amount), 1000);
-        collectedFee = add(collectedFee, _feeAmount);
+        IERC20(rewardToken ).safeTransfer(feeCollector, _feeAmount);
         _amount = sub(_amount, _feeAmount);
 
         for(uint _i = 0; i < holders.length; i++) {
