@@ -388,6 +388,7 @@ library SafeERC20 {
 // LIBRARIES END
 
 contract EasyBlock {
+    using SafeMath for uint256;
     // TODO: Should any things be private ?
     // TODO: Emits
     // Shareholder Info
@@ -479,17 +480,18 @@ contract EasyBlock {
     function depositRewards(uint _amount) external {
         IERC20(rewardToken ).safeTransferFrom( msg.sender, address(this), _amount );
 
-        totalRewardsDistributedInUSD = add(totalRewardsDistributedInUSD, div(_amount/ IERC20(rewardToken ).decimals()))
+        totalRewardsDistributedInUSD = totalRewardsDistributedInUSD.add( _amount.div( IERC20(rewardToken ).decimals()))
 
-        uint _feeAmount = div(mul(fee,_amount), 1000);
+        uint _feeAmount = fee.mul(_amount).div( 1000);
         IERC20(rewardToken ).safeTransfer(feeCollector, _feeAmount);
         _amount = sub(_amount, _feeAmount);
 
         for(uint _i = 0; i < holders.length; i++) {
             address _currentHolder = holders[i]
-            uint _userReward = div(mul(_amount, shareCount[_currentHolder]), totalShareCount);
-            claimableReward[_currentHolder] = add(claimableReward[_currentHolder], _userReward);
-            totalUserRewards[_currentHolder] = add(totalUserRewards[_currentHolder], _userReward);
+            uint _userReward = _amount.mul( shareCount[_currentHolder]).div( totalShareCount);
+            claimableReward[_currentHolder] = claimableReward[_currentHolder].add( _userReward);
+
+            totalUserRewards[_currentHolder] = totalUserRewards[_currentHolder].add( _userReward);
         }
     }
 
@@ -506,16 +508,16 @@ contract EasyBlock {
 
         uint _tokenDecimals = IERC20(_token ).decimals();
         uint _price = purchaseTokensPrice[_token]
-        IERC20(_token ).safeTransferFrom( msg.sender, address(this), mul(mul(_price, _tokenDecimals), _shareCount );
+        IERC20(_token ).safeTransferFrom( msg.sender, address(this), _price.mul( _tokenDecimals).mul( _shareCount );
 
-        totalInvestmentsInUSD = add(totalInvestmentsInUSD, mul(_shareCount, _price))
+        totalInvestmentsInUSD = totalInvestmentsInUSD.add( _shareCount.mul( _price))
 
         if(!listContains(holders, msg.sender)) {
             holders.push(msg.sender);
             shareCount[msg.sender] = 0;
         }
-        shareCount[msg.sender] = add(shareCount[msg.sender], _shareCount);
-        totalShareCount = add(totalShareCount, _shareCount);
+        shareCount[msg.sender] = shareCount[msg.sender].add( _shareCount);
+        totalShareCount = totalShareCount.add( _shareCount);
     }
 
     // HELPERS START
