@@ -411,10 +411,18 @@ contract EasyBlock {
     uint public totalInvestmentsInUSD = 0;
     uint public totalRewardsDistributedInUSD = 0;
     mapping(address => uint) public totalUserRewards;
+    // Protocol controllers
+    bool public sharePurchaseEnabled = false;
 
 
     function EasyBlock(){
 
+    }
+
+    // Controller toggles
+    function toggleSharePurchaseEnabled() external {
+        require(msg.sender == manager, "Not Authorized!");
+        sharePurchaseEnabled = !sharePurchaseEnabled;
     }
 
     // Deposit to Purchase Methods
@@ -494,6 +502,7 @@ contract EasyBlock {
 
     function buyShares(address _token, uint _shareCount) external {
         require(listContains(purchaseTokens, _token), "Not a Purchase Token.")
+        require(sharePurchaseEnabled, "Shares are not purchasable at the moment.")
 
         uint _tokenDecimals = IERC20(_token ).decimals();
         uint _price = purchaseTokensPrice[_token]
