@@ -159,6 +159,10 @@ contract EasyBlock {
     mapping(address => uint) public purchaseTokensPrice; // In USD
     // StrongBlock Node Holders
     address[] public nodeHolders;
+    // Statistic Variables
+    uint public totalInvestmentsInUSD = 0;
+    uint public totalRewardsDistributedInUSD = 0;
+    mapping(address => uint) public totalUserRewards;
 
 
     function EasyBlock(){
@@ -219,22 +223,25 @@ contract EasyBlock {
     function depositRewards(uint _amount) external {
         IERC20(rewardToken ).safeTransferFrom( msg.sender, address(this), _amount );
 
+        totalRewardsDistributedInUSD = add(totalRewardsDistributedInUSD, div(_amount/ IERC20(rewardToken ).decimals()))
+
         uint _feeAmount = div(mul(fee,_amount), 1000);
         IERC20(rewardToken ).safeTransfer(feeCollector, _feeAmount);
         _amount = sub(_amount, _feeAmount);
 
         for(uint _i = 0; i < holders.length; i++) {
             address _currentHolder = holders[i]
-            claimableReward[_currentHolder] = add(claimableReward[_currentHolder], div(mul(_amount, shareCount[_currentHolder]), totalShareCount))
+            uint _userReward = div(mul(_amount, shareCount[_currentHolder]), totalShareCount);
+            claimableReward[_currentHolder] = add(claimableReward[_currentHolder], _userReward);
+            totalUserRewards[_currentHolder] = add(totalUserRewards[_currentHolder], _userReward);
         }
-        // TODO: should there be a variable to keep track of all time earnings of both user and protocol
     }
 
     // Shareholder Methods
     function claimRewards() external {
+        require(listContains(holders, msg.sender), "msg.sender is not a shareholder.");
         IERC20(rewardToken ).safeTransfer( msg.sender, claimableReward[msg.sender]);
         claimableReward[msg.sender] = 0;
-        // Same question with above TODO
     }
 
     function buyShares(address _token, uint _shareCount) external {
@@ -243,6 +250,8 @@ contract EasyBlock {
         uint _tokenDecimals = IERC20(_token ).decimals();
         uint _price = purchaseTokensPrice[_token]
         IERC20(_token ).safeTransferFrom( msg.sender, address(this), mul(mul(_price, _tokenDecimals), _shareCount );
+
+        totalInvestmentsInUSD = add(totalInvestmentsInUSD, mul(_shareCount, _price))
 
         if(!listContains(holders, msg.sender)) {
             holders.push(msg.sender);
