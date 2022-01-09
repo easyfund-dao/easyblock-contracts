@@ -327,23 +327,6 @@ library Address {
             }
         }
     }
-
-    function addressToString(address _address) internal pure returns(string memory) {
-        bytes32 _bytes = bytes32(uint256(_address));
-        bytes memory HEX = "0123456789abcdef";
-        bytes memory _addr = new bytes(42);
-
-        _addr[0] = '0';
-        _addr[1] = 'x';
-
-        for(uint256 i = 0; i < 20; i++) {
-            _addr[2+i*2] = HEX[uint8(_bytes[i + 12] >> 4)];
-            _addr[3+i*2] = HEX[uint8(_bytes[i + 12] & 0x0f)];
-        }
-
-        return string(_addr);
-
-    }
 }
 
 // ERC20 Interface
@@ -389,6 +372,7 @@ library SafeERC20 {
 
 contract EasyBlock {
     using SafeMath for uint256;
+    using SafeERC20 for IERC20;
 
     // Shareholder Info
     address[] public holders;
@@ -493,10 +477,10 @@ contract EasyBlock {
 
         uint _feeAmount = fee.mul(_amount).div( 1000);
         IERC20(rewardToken ).safeTransfer(feeCollector, _feeAmount);
-        _amount = sub(_amount, _feeAmount);
+        _amount = _amount.sub(_feeAmount);
 
-        for(uint _i = 0; i < holders.length; i++) {
-            address _currentHolder = holders[i];
+        for(uint _i = 0; _i < holders.length; _i++) {
+            address _currentHolder = holders[_i];
             uint _userReward = _amount.mul( shareCount[_currentHolder]).div( totalShareCount);
             claimableReward[_currentHolder] = claimableReward[_currentHolder].add( _userReward);
 
