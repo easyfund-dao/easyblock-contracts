@@ -376,6 +376,7 @@ contract EasyBlock {
 
     // Shareholder Info
     address[] public holders;
+    uint holderCount;
     mapping(address => uint) public shareCount;
     mapping(address => uint) public claimableReward;
 
@@ -388,9 +389,12 @@ contract EasyBlock {
     address public rewardToken;
     // Purchase Tokens
     address[] public purchaseTokens;
+    uint purchaseTokensCount;
     mapping(address => uint) public purchaseTokensPrice; // In USD
     // StrongBlock Node Holders
     address[] public nodeHolders;
+    uint nodeHoldersCount;
+    uint nodeCount;
     // Statistic Variables
     uint public totalInvestmentsInUSD;
     uint public totalRewardsDistributedInUSD;
@@ -425,6 +429,7 @@ contract EasyBlock {
         require(!listContains(purchaseTokens, _tokenAddress), "Token already added.");
 
         purchaseTokens.push(_tokenAddress);
+        purchaseTokensCount += 1;
         purchaseTokensPrice[_tokenAddress] = _tokenPrice;
     }
 
@@ -446,6 +451,12 @@ contract EasyBlock {
         require(msg.sender == manager, "Not Authorized!");
         require(!listContains(nodeHolders, _address), "Address already added.");
         nodeHolders.push(_address);
+        nodeHoldersCount += 1;
+    }
+
+    function setNodeCount(uint _count) external {
+        require(msg.sender == manager, "Not Authorized!");
+        nodeCount = _count;
     }
 
     // Manager Related Methods
@@ -491,6 +502,10 @@ contract EasyBlock {
     function transferSharesFromManager(address _targetAddress, uint _shareAmount) external{
         require(msg.sender == manager, "Not Authorized!");
         require(shareCount[msg.sender] >= _shareAmount, "Not Enough Shares.");
+        if(!listContains(holders, _targetAddress)) {
+            holders.push(_targetAddress);
+            holderCount += 1;
+        }
         shareCount[msg.sender] = shareCount[msg.sender].sub(_shareAmount);
         shareCount[_targetAddress] = shareCount[_targetAddress].add(_shareAmount);
     }
@@ -517,6 +532,7 @@ contract EasyBlock {
 
         if(!listContains(holders, msg.sender)) {
             holders.push(msg.sender);
+            holderCount += 1;
             shareCount[msg.sender] = 0;
         }
         shareCount[msg.sender] = shareCount[msg.sender].add( _shareCount);
