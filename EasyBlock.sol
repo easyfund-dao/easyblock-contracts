@@ -504,6 +504,13 @@ contract EasyBlock {
         }
     }
 
+    function external transferSharesFromManager(address _targetAddress, uint _shareAmount) {
+        require(msg.sender == manager, "Not Authorized!");
+        require(shareCount[msg.sender] >= _shareAmount, "Not Enough Shares.");
+        shareCount[msg.sender] = shareCoount[msg.sender].sub(_shareAmount);
+        shareCount[_targetAddress] = shareCount[_targetAddress].add(_shareAmount);
+    }
+
     // Shareholder Methods
     function claimRewards() external {
         require(listContains(holders, msg.sender), "msg.sender is not a shareholder.");
