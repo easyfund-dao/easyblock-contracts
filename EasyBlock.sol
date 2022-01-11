@@ -392,6 +392,7 @@ contract EasyBlock {
     address[] public purchaseTokens;
     uint purchaseTokensCount;
     mapping(address => uint) public purchaseTokensPrice; // In USD
+    mapping(address => uint) public newInvestments;
     // StrongBlock Node Holders
     address[] public nodeHolders;
     uint nodeHoldersCount;
@@ -432,6 +433,7 @@ contract EasyBlock {
         purchaseTokens.push(_tokenAddress);
         purchaseTokensCount += 1;
         purchaseTokensPrice[_tokenAddress] = _tokenPrice;
+        newInvestments[_tokenAddress] = 0;
     }
 
     function editPurchaseToken(address _tokenAddress, uint _tokenPrice) external {
@@ -478,8 +480,10 @@ contract EasyBlock {
 
     function withdrawToManager(address _token, uint _amount) external {
         require(msg.sender == manager, "Not Authorized!");
-        require(listContains(purchaseTokens, _token), "Not a Purchase Token.");
+        require(listContains(purchaseTokens, _token), "Not a purchase token.");
+        require(newInvestments[_token] > _amount, "Not enough investment.");
         IERC20( _token ).safeTransfer( manager, _amount);
+        newInvestments[_token] = newInvestments[_token].sub(_amount);
     }
 
     function depositRewards(uint _amount) external {
@@ -545,6 +549,7 @@ contract EasyBlock {
         }
         shareCount[msg.sender] = shareCount[msg.sender].add( _shareCount);
         totalShareCount = totalShareCount.add( _shareCount);
+        newInvestments[_token] = _price.mul( _tokenDecimals).mul( _shareCount );
 
         emit Investment(_shareCount, _price.mul(_shareCount), msg.sender);
     }
