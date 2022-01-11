@@ -384,6 +384,7 @@ contract EasyBlock {
     // Manager Info
     address public manager;
     uint public fee = 0; // per 1000
+    uint accumulatedFees = 0;
     address public feeCollector;
     // Deposit Token
     address public rewardToken;
@@ -484,10 +485,11 @@ contract EasyBlock {
     function depositRewards(uint _amount) external {
         IERC20(rewardToken ).safeTransferFrom( msg.sender, address(this), _amount );
 
-        totalRewardsDistributedInUSD = totalRewardsDistributedInUSD.add( _amount.div( IERC20(rewardToken ).decimals()));
+        uint tenToThePowerDecimals = 10 ** IERC20(rewardToken ).decimals());
+        totalRewardsDistributedInUSD = totalRewardsDistributedInUSD.add( _amount.div(tenToThePowerDecimals);
 
         uint _feeAmount = fee.mul(_amount).div( 1000);
-        IERC20(rewardToken ).safeTransfer(feeCollector, _feeAmount);
+        accumulatedFees = accumulatedFees.add(_feeAmount);
         _amount = _amount.sub(_feeAmount);
 
         for(uint _i = 0; _i < holders.length; _i++) {
@@ -508,6 +510,12 @@ contract EasyBlock {
         }
         shareCount[msg.sender] = shareCount[msg.sender].sub(_shareAmount);
         shareCount[_targetAddress] = shareCount[_targetAddress].add(_shareAmount);
+    }
+
+    function claimFees() external {
+        require(msg.sender == feeCollector, "Not fee collector");
+        IERC20(rewardToken ).safeTransfer(feeCollector, accumulatedFees);
+        accumulatedFees  = 0;
     }
 
     // Shareholder Methods
