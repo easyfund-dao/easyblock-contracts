@@ -489,8 +489,8 @@ contract EasyBlock {
     function depositRewards(uint _amount) external {
         IERC20(rewardToken ).safeTransferFrom( msg.sender, address(this), _amount );
 
-        uint tenToThePowerDecimals = 10 ** IERC20(rewardToken ).decimals());
-        totalRewardsDistributedInUSD = totalRewardsDistributedInUSD.add( _amount.div(tenToThePowerDecimals);
+        uint tenToThePowerDecimals = 10 ** IERC20(rewardToken ).decimals();
+        totalRewardsDistributedInUSD = totalRewardsDistributedInUSD.add( _amount.div(tenToThePowerDecimals));
 
         uint _feeAmount = fee.mul(_amount).div( 1000);
         accumulatedFees = accumulatedFees.add(_feeAmount);
