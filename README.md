@@ -1,2 +1,2 @@
 # EasyBlock
-Makes StrongBlock accesible for everybody.
+Makes [StrongBlock](https://strongblock.com/) accesible for everybody.
