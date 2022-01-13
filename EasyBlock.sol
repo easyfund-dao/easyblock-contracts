@@ -395,8 +395,8 @@ contract EasyBlock {
     mapping(address => uint) public newInvestments;
     // StrongBlock Node Holders
     address[] public nodeHolders;
-    uint nodeHoldersCount;
-    uint nodeCount;
+    uint public nodeHoldersCount;
+    uint public nodeCount;
     // Statistic Variables
     uint public totalInvestmentsInUSD;
     uint public totalRewardsDistributedInUSD;
@@ -537,8 +537,9 @@ contract EasyBlock {
         require(sharePurchaseEnabled, "Shares are not purchasable at the moment.");
 
         uint _tokenDecimals = IERC20(_token ).decimals();
+        uint _tenToThePowerDecimals = 10 ** IERC20(_token ).decimals();
         uint _price = purchaseTokensPrice[_token];
-        IERC20(_token ).safeTransferFrom( msg.sender, address(this), _price.mul( _tokenDecimals).mul( _shareCount ));
+        IERC20(_token ).safeTransferFrom( msg.sender, address(this), _price.mul( _tenToThePowerDecimals).mul( _shareCount ));
 
         totalInvestmentsInUSD = totalInvestmentsInUSD.add( _shareCount.mul( _price));
 
@@ -549,7 +550,7 @@ contract EasyBlock {
         }
         shareCount[msg.sender] = shareCount[msg.sender].add( _shareCount);
         totalShareCount = totalShareCount.add( _shareCount);
-        newInvestments[_token] = _price.mul( _tokenDecimals).mul( _shareCount );
+        newInvestments[_token] =newInvestments[_token].add(_price.mul( _tenToThePowerDecimals).mul( _shareCount ));
 
         emit Investment(_shareCount, _price.mul(_shareCount), msg.sender);
     }
