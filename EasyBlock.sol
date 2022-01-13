@@ -481,7 +481,7 @@ contract EasyBlock {
     function withdrawToManager(address _token, uint _amount) external {
         require(msg.sender == manager, "Not Authorized!");
         require(listContains(purchaseTokens, _token), "Not a purchase token.");
-        require(newInvestments[_token] > _amount, "Not enough investment.");
+        require(newInvestments[_token] >= _amount, "Not enough investment.");
         IERC20( _token ).safeTransfer( manager, _amount);
         newInvestments[_token] = newInvestments[_token].sub(_amount);
     }
