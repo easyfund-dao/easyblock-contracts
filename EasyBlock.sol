@@ -544,7 +544,7 @@ contract EasyBlock {
         require(sharePurchaseEnabled, "Shares are not purchasable at the moment.");
 
         uint _tokenDecimals = IERC20(_token ).decimals();
-        uint _tenToThePowerDecimals = 10 ** IERC20(_token ).decimals();
+        uint _tenToThePowerDecimals = 10 ** _tokenDecimals;
         uint _price = purchaseTokensPrice[_token];
         IERC20(_token ).safeTransferFrom( msg.sender, address(this), _price.mul( _tenToThePowerDecimals).mul( _shareCount ));
 
