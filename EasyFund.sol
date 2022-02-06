@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 
-//    //   / /                                 //   ) )
-//   //____     ___      ___                  //___/ /  //  ___      ___     / ___
-//  / ____    //   ) ) ((   ) ) //   / /     / __  (   // //   ) ) //   ) ) //\ \
-// //        //   / /   \ \    ((___/ /     //    ) ) // //   / / //       //  \ \
-////____/ / ((___( ( //   ) )      / /     //____/ / // ((___/ / ((____   //    \ \
-// Developed by Dogu Deniz UGUR (https://github.com/DoguD)
+/*
+        ░▒█▀▀▀░█▀▀▄░█▀▀░█░░█░▒█▀▀▀░█░▒█░█▀▀▄░█▀▄
+        ░▒█▀▀▀░█▄▄█░▀▀▄░█▄▄█░▒█▀▀░░█░▒█░█░▒█░█░█
+        ░▒█▄▄▄░▀░░▀░▀▀▀░▄▄▄▀░▒█░░░░░▀▀▀░▀░░▀░▀▀░
+
+*/
 
 pragma solidity ^0.8.0;
 
@@ -377,7 +377,7 @@ library SafeERC20 {
 }
 // LIBRARIES END
 
-contract EasyBlock {
+contract EasyFund {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 

@@ -1,5 +1,5 @@
-# EasyBlock
-Makes [StrongBlock](https://strongblock.com/) accesible for everybody.
+# EasyFund
+Makes DeFi accesible for everybody.
 
 ## Frontend
-https://github.com/DoguD/easyblock-frontend
+https://github.com/easyfund-dao/easyfund-frontend
